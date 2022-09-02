@@ -25,6 +25,11 @@ except:
 #Name of file you want to read
 review_file = 'Reviews\Toys_and_Games.json.gz' # Review data file path and name
 meta_file = 'Metadata\meta_Toys_and_Games.json.gz' # Metadata file path and name
+
+try:
+    outpath = '\\Output\\'+str.split(str.split(review_file,"\\")[1],".")[0]
+except:
+    outpath = '\\Output\\'+review_file
  
 # Functions to read the data
 
@@ -56,4 +61,7 @@ print(productreviews.head())
 
 end = time.perf_counter()
 
+productreviews.to_parquet(outpath+".parquet",partition_cols=['title','brand'])
+
 print(f"Code finished in {(end - start)/60:0.4f} minutes")
+
