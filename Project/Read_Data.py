@@ -51,7 +51,7 @@ print(review_df)
 meta_df = getDF(meta_file) # create metadata df
 print(meta_df)
 
-productreviews = pd.merge(meta_df, review_df, on='asin', how='inner')
+productreviews = pd.merge(meta_df[['category','title','brand','main_cat','price','asin']], review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']], on='asin', how='inner')
 print(productreviews.head())
 
 end = time.perf_counter()
