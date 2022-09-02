@@ -3,12 +3,21 @@ import pandas as pd
 import json
 import gzip
 import os
+import time
+
+start = time.perf_counter()
 
 # See current working directory
 os.getcwd()
 
 # Change working directory to parent directory (where your data is stored)
-os.chdir('D:\School_Files\DAAN_888\Team_8_Project\Amazon_Data')
+try:
+    if str.split(os.getcwd(),"\\")[2] == "brull":
+        os.chdir('C:\\Users\\brull\\OneDrive - The Pennsylvania State University\\Team-8\\Data')
+    else:
+        os.chdir('D:\\School_Files\\DAAN_888\\Team_8_Project\\Amazon_Data')
+except:
+    os.chdir('D:\\School_Files\\DAAN_888\\Team_8_Project\\Amazon_Data')
 
 #%%
 # Read individual files
@@ -38,5 +47,13 @@ def getDF(path):
 # Run the functions
 
 review_df = getDF(review_file) # create review data df
+print(review_df)
 meta_df = getDF(meta_file) # create metadata df
+print(meta_df)
 
+productreviews = pd.merge(meta_df, review_df, on='asin', how='inner')
+print(productreviews.head())
+
+end = time.perf_counter()
+
+print(f"Code finished in {(end - start)/60:0.4f} minutes")
