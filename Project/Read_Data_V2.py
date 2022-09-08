@@ -60,22 +60,22 @@ productreviews = pd.merge(meta_df[['category', 'title', 'brand', 'main_cat', 'pr
                           review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']], 
                           on='asin', how='inner')
 
-productreviews['category'] = productreviews['category'].astype(str)
-productreviews['title'] = productreviews['title'].astype(str)
-productreviews['brand'] = productreviews['brand'].astype(str)
-productreviews['main_cat'] = productreviews['main_cat'].astype(str)
-productreviews['price'] = productreviews['price'].astype(str)
-productreviews['asin'] = productreviews['asin'].astype(str)
-productreviews['overall'] = productreviews['overall'].astype(str)
-productreviews['reviewTime'] = productreviews['reviewTime'].astype(str)
-productreviews['reviewerName'] = productreviews['reviewerName'].astype(str)
-productreviews['reviewText'] = productreviews['reviewText'].astype(str)
-productreviews['summary'] = productreviews['summary'].astype(str)
+productreviews['category'].astype(str)
+productreviews['title'].astype(str)
+productreviews['brand'].astype(str)
+productreviews['main_cat'].astype(str)
+productreviews['price'].astype(str)
+productreviews['asin'].astype(str)
+productreviews['overall'].astype(str)
+productreviews['reviewTime'].astype(str)
+productreviews['reviewerName'].astype(str)
+productreviews['reviewText'].astype(str)
+productreviews['summary'].astype(str)
 
 print(productreviews.head())
 
 import pyarrow
-productreviews.to_parquet(outpath+".parquet", engine='pyarrow')
+productreviews.to_parquet(outpath+"v2.parquet",partition_cols='overall' , engine='pyarrow')
 
 end = time.perf_counter()
 print(f"Code finished in {(end - start)/60:0.4f} minutes")
