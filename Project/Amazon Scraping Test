@@ -94,7 +94,7 @@ for i in rev_data:
 		rev_result.append(i)
 rev_result
 
-#Product Meta Data
+#Product Meta Data - ALEX This is where I was having issues 
 
 def product_info(soup):
 
