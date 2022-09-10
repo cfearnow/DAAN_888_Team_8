@@ -38,6 +38,10 @@ def getDF(path):
 review_df = getDF(review_file) # create review data df
 meta_df = getDF(meta_file) # create metadata df
 
+# Determine # of rows
+print(review_df.index)
+print(meta_df.index)
+
 # Find number of null values in each dataset
 review_df.isnull().sum()
 
