@@ -40,3 +40,89 @@ def getDF(path):
 review_df = getDF(review_file) # create review data df
 meta_df = getDF(meta_file) # create metadata df
 
+
+# Alex already created parquet file for Toys_and_games
+
+# Clothing_Shoes_and_Jewelry.json.gz parquet file creation
+
+# Load Data
+review_file = 'Clothing_Shoes_and_Jewelry.json.gz' # Review data file path and name
+meta_file = 'meta_Clothing_Shoes_and_Jewelry.json.gz' # Metadata file path and name
+
+# Run functions to parse and get dataframe
+review_df = getDF(review_file) # create review data df
+meta_df = getDF(meta_file) # create metadata df
+
+# Confirm field names
+review_df.iloc[0]
+
+# Create merged file
+productreviews = pd.merge(meta_df[['category','title','brand','main_cat','price','asin']], review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']], on='asin', how='inner')
+
+# Output to parquet
+productreviews.to_parquet('Clothing_Shoes_and_Jewelry.parquet',partition_cols=['overall'])
+
+
+# Office_Products.json.gz parquet file creation
+
+# Load Data
+review_file = 'Office_Products.json.gz' # Review data file path and name
+meta_file = 'meta_Office_Products.json.gz' # Metadata file path and name
+
+# Run functions to parse and get dataframe
+review_df = getDF(review_file) # create review data df
+meta_df = getDF(meta_file) # create metadata df
+
+# Confirm field names
+review_df.iloc[0]
+
+# Create merged file
+productreviews = pd.merge(meta_df[['category','title','brand','main_cat','price','asin']], review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']], on='asin', how='inner')
+
+# Output to parquet
+productreviews.to_parquet('Office_Products.parquet',partition_cols=['overall'])
+
+
+# Patio_Lawn_and_Garden.json.gz parquet file creation
+
+# Load Data
+review_file = 'Patio_Lawn_and_Garden.json.gz' # Review data file path and name
+meta_file = 'meta_Patio_Lawn_and_Garden.json.gz' # Metadata file path and name
+
+# Run functions to parse and get dataframe
+review_df = getDF(review_file) # create review data df
+meta_df = getDF(meta_file) # create metadata df
+
+# Confirm field names
+review_df.iloc[0]
+
+# Create merged file
+productreviews = pd.merge(meta_df[['category','title','brand','main_cat','price','asin']], review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']], on='asin', how='inner')
+
+# Output to parquet
+productreviews.to_parquet('Patio_Lawn_and_Garden.parquet',partition_cols=['overall'])
+
+
+# Pet_Supplies.json.gz parquet file creation
+
+# Load Data
+review_file = 'Pet_Supplies.json.gz' # Review data file path and name
+meta_file = 'meta_Pet_Supplies.json.gz' # Metadata file path and name
+
+# Run functions to parse and get dataframe
+review_df = getDF(review_file) # create review data df
+meta_df = getDF(meta_file) # create metadata df
+
+# Confirm field names
+review_df.iloc[0]
+
+# Create merged file
+productreviews = pd.merge(meta_df[['category','title','brand','main_cat','price','asin']], review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']], on='asin', how='inner')
+
+# Output to parquet
+productreviews.to_parquet('Pet_Supplies.parquet',partition_cols=['overall'])
+
+
+
+
+
