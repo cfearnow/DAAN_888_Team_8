@@ -141,3 +141,40 @@ def rev_img(soup):
 
 img_result = rev_img(soup)
 img_result
+
+# Trying price and title
+
+# Function to extract Product Title
+def get_title(soup):
+	
+	try:
+		# Outer Tag Object
+		title = soup.find("span", attrs={"id":'productTitle'})
+
+		# Inner NavigableString Object
+		title_value = title.string
+
+		# Title as a string value
+		title_string = title_value.strip()
+
+		# # Printing types of values for efficient understanding
+		# print(type(title))
+		# print(type(title_value))
+		# print(type(title_string))
+		# print()
+
+	except AttributeError:
+		title_string = ""	
+
+	return title_string        
+
+# Function to extract Product Price
+def get_price(soup):
+
+	try:
+		price = soup.find("span", attrs={'id':'priceblock_ourprice'}).string.strip()
+
+	except AttributeError:
+		price = ""	
+
+	return price
