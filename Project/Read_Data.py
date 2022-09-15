@@ -41,6 +41,10 @@ def load_data(file):
 def load_csvs(files_list):
     df_dict = {}
     for file in files_list:
+        # Skip Clothing_Shoes_and_Jewelry file
+        if file == 'Data\Parquet\Clothing_Shoes_and_Jewelry.parquet':
+            continue
+  
         print('Loading: '+ file)
         df_dict[file] = load_data(file)
     return df_dict
@@ -78,7 +82,7 @@ all_file = all_file.drop('category', axis=1)
 # Additional method of ingest
 
 # Create single dataframe from dictionary if needed
-Clothing_Shoes_and_Jewelry = df_dict['Data\Parquet\Clothing_Shoes_and_Jewelry.parquet'][0]
+#####Clothing_Shoes_and_Jewelry = df_dict['Data\Parquet\Clothing_Shoes_and_Jewelry.parquet'][0]
 Office_Products = df_dict['Data\Parquet\Office_Products.parquet'][0]
 Patio_Lawn_and_Garden = df_dict['Data\Parquet\Patio_Lawn_and_Garden.parquet'][0]
 Pet_Supplies = df_dict['Data\Parquet\Pet_Supplies.parquet'][0]
