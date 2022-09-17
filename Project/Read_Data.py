@@ -5,6 +5,7 @@ import gzip
 import os
 import time
 
+#timer to see how long code is taking from start to finish
 start = time.perf_counter()
 
 # See current working directory
@@ -19,18 +20,15 @@ try:
 except:
     os.chdir('D:\\School_Files\\DAAN_888\\Team_8_Project\\Amazon_Data')
 
-#%%
-# Read individual files
-
 #Name of file you want to read
-review_file = 'Reviews\Sports_and_Outdoors.json.gz' # Review data file path and name
-meta_file = 'Metadata\meta_Sports_and_Outdoors.json.gz' # Metadata file path and name
-
-try:
-    outpath = '.\\Output\\'+str.split(str.split(review_file,"\\")[1],".")[0]
-except:
-    outpath = '.\\Output\\'+review_file
+review_file = 'Reviews\Office_Products.json.gz' # Review data file path and name
+meta_file = 'Metadata\meta_Office_Products.json.gz' # Metadata file path and name
  
+try:
+    outpath = '.\\Output\\'+str.split(str.split(review_file,"\\")[1],".")[0]+'.parquet'
+except:
+    outpath = '.\\Output\\'+review_file+'.parquet'
+    
 # Functions to read the data
 
 # Parse through the json file
@@ -52,30 +50,21 @@ def getDF(path):
 # Run the functions
 
 review_df = getDF(review_file) # create review data df
-
 meta_df = getDF(meta_file) # create metadata df
 
+meta_df = meta_df[['title','brand','main_cat','price','asin']]
+review_df = review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']]
 
-productreviews = pd.merge(meta_df[['category', 'title', 'brand', 'main_cat', 'price', 'asin']], 
-                          review_df[['overall','verified','reviewTime','reviewerName','reviewText','summary','asin']], 
-                          on='asin', how='inner')
+#drop duplicate values from each dataset prior to merge
+dedup_meta = meta_df.drop_duplicates()
+dedup_reviews = review_df.drop_duplicates()
 
-productreviews['category'] = productreviews['category'].astype(str)
-productreviews['title'] = productreviews['title'].astype(str)
-productreviews['brand'] = productreviews['brand'].astype(str)
-productreviews['main_cat'] = productreviews['main_cat'].astype(str)
-productreviews['price'] = productreviews['price'].astype(str)
-productreviews['asin'] = productreviews['asin'].astype(str)
-productreviews['overall'] = productreviews['overall'].astype(str)
-productreviews['reviewTime'] = productreviews['reviewTime'].astype(str)
-productreviews['reviewerName'] = productreviews['reviewerName'].astype(str)
-productreviews['reviewText'] = productreviews['reviewText'].astype(str)
-productreviews['summary'] = productreviews['summary'].astype(str)
+productreviews = pd.merge(dedup_meta, dedup_reviews, on='asin', how='inner')
 
-print(productreviews.head())
+nonull_reviews = productreviews.dropna(subset=['reviewText'])
 
-import pyarrow
-productreviews.to_parquet(outpath+".parquet", engine='pyarrow')
+# Output to parquet
+nonull_reviews.to_parquet(outpath,partition_cols=['overall'])
 
 end = time.perf_counter()
 print(f"Code finished in {(end - start)/60:0.4f} minutes")
