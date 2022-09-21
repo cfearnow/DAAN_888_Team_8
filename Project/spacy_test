@@ -1,0 +1,70 @@
+# Import necessary packages
+import pandas as pd
+import numpy as np
+import pyarrow.parquet as pq
+import matplotlib.pyplot as plt
+from datetime import datetime
+import json
+import gzip
+import os
+import codecs
+import csv
+#import boto3
+import io
+import re
+import string
+import glob
+
+# Packages for NLP
+import spacy
+from spacy.tokens import Span
+from spacy import displacy
+
+# Load cleaned file
+file = 'team8_initial_clean.parquet.gz'
+df = pd.read_parquet(file, engine = "pyarrow")
+#type(df)
+#len(df)
+#df.head(5)
+
+# Load spacy large
+nlp = spacy.load("en_core_web_lg")
+
+# Sample cleaned Team 8 file
+df_sample = df.sample(n=10000)
+df_sample.columns
+
+# Apply spacy to the entire collection of reviews
+docs = list(nlp.pipe(df_sample.reviewText))
+
+# function to extract word properties
+def extract_tokens_plus_meta(doc:spacy.tokens.doc.Doc):
+    """Extract tokens and metadata from individual spaCy doc."""
+    return [
+        (i.text, i.i, i.lemma_, i.ent_type_, i.tag_, 
+         i.dep_, i.pos_, i.is_stop, i.is_alpha, 
+         i.is_digit, i.is_punct) for i in doc
+    ]
+
+# function to apply extract_tokens_plus_meta to doc and output to dataframe
+def tidy_tokens(docs):
+    """Extract tokens and metadata from list of spaCy docs."""
+    
+    cols = [
+        "doc_id", "token", "token_order", "lemma", 
+        "ent_type", "tag", "dep", "pos", "is_stop", 
+        "is_alpha", "is_digit", "is_punct"
+    ]
+    
+    meta_df = []
+    for ix, doc in enumerate(docs):
+        meta = extract_tokens_plus_meta(doc)
+        meta = pd.DataFrame(meta)
+        meta.columns = cols[1:]
+        meta = meta.assign(doc_id = ix).loc[:, cols]
+        meta_df.append(meta)
+        
+    return pd.concat(meta_df)   
+
+# Run new functions for 10k sample docs
+tidy_tokens(docs)
