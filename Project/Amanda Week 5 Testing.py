@@ -107,23 +107,57 @@ nlp = spacy.load('en_core_web_sm',disable=['parser', 'ner'])
 
 amanda_sample['reviewText']=amanda_sample['reviewText'].apply(lambda x: ' '.join([token.lemma_ for token in list(nlp(x)) if (token.is_stop==False)]))
 
-print(amanda_sample['review_text'].head(50)) #take a look at a few 
+print(amanda_sample['reviewText'].head(50)) #take a look at a few 
+
 
 #group our words by main product category
 
 grouped_sample = amanda_sample[['main_cat','reviewText']].groupby(by='main_cat').agg(lambda x:' '.join(x))
 print(grouped_sample.head())
 
-# Create a Document Term Matrix - LEFT OFF HERE
+# Create a Document Term Matrix - KiNDA WORKING, but is there something wrong with our main categories?
 
-from sklearn.feature_extraction.text
-import CountVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
+
 cv=CountVectorizer(analyzer='word')
-data=cv.fit_transform(df_grouped['lemmatized'])
+data=cv.fit_transform(grouped_sample['reviewText'])
 df_dtm = pd.DataFrame(data.toarray(), columns=cv.get_feature_names())
-df_dtm.index=df_grouped.index
+df_dtm.index=grouped_sample.index
 df_dtm.head(3)
 
+# Importing wordcloud for plotting word clouds and textwrap for wrapping longer text
+from wordcloud import WordCloud
+from textwrap import wrap
+import matplotlib.pyplot as plt
+
+
+# Function for generating word clouds
+def generate_wordcloud(data,title):
+  wc = WordCloud(width=400, height=330, max_words=150,colormap="Dark2").generate_from_frequencies(data)
+  plt.figure(figsize=(10,8))
+  plt.imshow(wc, interpolation='bilinear')
+  plt.axis("off")
+  plt.title('\n'.join(wrap(title,60)),fontsize=13)
+  plt.show()
+  
+# Transposing document term matrix
+df_dtm=df_dtm.transpose()
+
+# Plotting word cloud for each product
+for index,product in enumerate(df_dtm.columns):
+  generate_wordcloud(df_dtm[product].sort_values(ascending=False),product)
+  
+ ############################################################################################ 
+  
+ # Check polorarity - This is not Working YET!!!
+
+from textblob import TextBlob
+grouped_sample['polarity']=grouped_sample['reviewText'].apply(lambda x:TextBlob(x).sentiment.polarity)
+
+# Take a look at some reviews
+print("3 Random Reviews with Highest Polarity:")
+for index,review in enumerate(grouped_sample.iloc[grouped_sample['polarity'].sort_values(ascending=False)[:3].index]['reviewText']):
+  print('Review {}:\n'.format(index+1),review)  
 
 
 
