@@ -1,3 +1,9 @@
+
+##########################################################################################
+# After 9/18/22, Trying out spacy text tokenization and analysis
+##########################################################################################
+
+
 # Import necessary packages
 import pandas as pd
 import numpy as np
@@ -21,7 +27,7 @@ from spacy.tokens import Span
 from spacy import displacy
 
 # Load cleaned file
-file = 'team8_initial_clean.parquet.gz'
+file = 'Pet_Supplies.parquet'
 df = pd.read_parquet(file, engine = "pyarrow")
 #type(df)
 #len(df)
@@ -30,9 +36,9 @@ df = pd.read_parquet(file, engine = "pyarrow")
 # Load spacy large
 nlp = spacy.load("en_core_web_lg")
 
-# Sample cleaned Team 8 file
+# Sample from one of the original parquet files
 df_sample = df.sample(n=10000)
-df_sample.columns
+df_sample.dropna(inplace = True)
 
 # Apply spacy to the entire collection of reviews
 docs = list(nlp.pipe(df_sample.reviewText))
@@ -63,8 +69,17 @@ def tidy_tokens(docs):
         meta.columns = cols[1:]
         meta = meta.assign(doc_id = ix).loc[:, cols]
         meta_df.append(meta)
-        
-    return pd.concat(meta_df)   
+    return meta_df
 
-# Run new functions for 10k sample docs
-tidy_tokens(docs)
+# Run new functions for 10k sample docs and output a csv of text analysis
+df_output = tidy_tokens(docs)
+df_output.to_csv('df_output.csv')
+
+##########################################################################################
+# After 9/18/22, Trying out spacy sentiment analysis
+##########################################################################################
+
+import textblob
+#from spacytextblob.spacytextblob import SpacyTextBlob
+
+nlp.add_pipe('spacytextblob')
