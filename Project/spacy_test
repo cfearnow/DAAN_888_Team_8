@@ -27,7 +27,7 @@ from spacy.tokens import Span
 from spacy import displacy
 
 # Load cleaned file
-file = 'Pet_Supplies.parquet'
+file = 'team8_initial_clean.parquet.gz'
 df = pd.read_parquet(file, engine = "pyarrow")
 #type(df)
 #len(df)
@@ -37,7 +37,7 @@ df = pd.read_parquet(file, engine = "pyarrow")
 nlp = spacy.load("en_core_web_lg")
 
 # Sample from one of the original parquet files
-df_sample = df.sample(n=10000)
+df_sample = df.sample(n=100)
 df_sample.dropna(inplace = True)
 
 # Apply spacy to the entire collection of reviews
@@ -73,13 +73,27 @@ def tidy_tokens(docs):
 
 # Run new functions for 10k sample docs and output a csv of text analysis
 df_output = tidy_tokens(docs)
-df_output.to_csv('df_output.csv')
+#df_output.to_csv('df_output.csv')
 
 ##########################################################################################
-# After 9/18/22, Trying out spacy sentiment analysis
+# After 9/18/22, Trying out textblob sentiment analysis
 ##########################################################################################
 
 import textblob
+from textblob import TextBlob
 #from spacytextblob.spacytextblob import SpacyTextBlob
 
-nlp.add_pipe('spacytextblob')
+
+#example = TextBlob(df_sample['reviewText'].iloc[0])
+#example.sentiment
+
+result = []
+i=0
+
+for i in range(len(df_sample)):
+    
+    example = TextBlob(df_sample['reviewText'].iloc[i])
+    result.append(example.sentiment.polarity)
+    
+df_sample['Sentiment'] = result
+df_sample.to_csv('df_output.csv')
