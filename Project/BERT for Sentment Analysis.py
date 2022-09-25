@@ -5,6 +5,10 @@ Created on Sat Sep 24 19:19:03 2022
 @author: cchee
 """
 
+### This code was developed following the tutorial from this online article: 
+## Sentiment Analysis of Tweets using BERT - Thinking Neuron
+## https://thinkingneuron.com/sentiment-analysis-of-tweets-using-bert/
+
 import pandas as pd
 import json
 import gzip
@@ -42,7 +46,7 @@ print(clean_data.index)
 
 #Set a seed and sample a random 250,000 rows of data
 
-amanda_sample = clean_data.sample(n=1000, random_state= 12345)
+amanda_sample = clean_data.sample(n=200000, random_state= 12345)
 
 print(amanda_sample.index)
 
@@ -65,7 +69,7 @@ def FunctionBERTSentiment(inpText):
   return(SentimentClassifier(inpText)[0]['label'])
  
 # Calling the function - just test it
-FunctionBERTSentiment(inpText="Houston we have a problem")
+FunctionBERTSentiment(inpText="I'm not sure this worked right")
 
 
 # Calling BERT based sentiment score function for every review
