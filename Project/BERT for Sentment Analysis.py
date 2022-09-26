@@ -15,6 +15,8 @@ import gzip
 import os
 import re
 import string
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 from transformers import BertTokenizer, TFBertForSequenceClassification
@@ -75,6 +77,80 @@ FunctionBERTSentiment(inpText="I'm not sure this worked right")
 # Calling BERT based sentiment score function for every review
 amanda_sample['Sentiment']=amanda_sample['reviewText'].apply(FunctionBERTSentiment)
 amanda_sample.head(200)
+
+amanda_sample.to_csv('BERTsample_output.csv')
+
+# Plot number of reviews by subcategory and sentiment
+pivot = pd.pivot_table(amanda_sample, values = 'asin', index = 'sub_category', columns = 'Sentiment', aggfunc='count')
+pivot = pivot.reset_index()
+pivot.plot.bar(x = 'sub_category', rot = 50)
+plt.xlabel("Sub Category")
+plt.ylabel("Number of Reviews")
+plt.title("Reviews by Sub Category and Sentiments")
+plt.legend(title="Sentiment", loc='best', fontsize='small', fancybox=True)
+current_values = plt.gca().get_yticks()
+plt.show()
+
+# Plot number of reviews by Star rating and sentiment
+pivot = pd.pivot_table(amanda_sample, values = 'asin', index = 'overall', columns = 'Sentiment', aggfunc='count')
+pivot = pivot.reset_index()
+pivot.plot.bar(x = 'overall', rot = 50)
+plt.xlabel("Star Rating")
+plt.ylabel("Number of Reviews")
+plt.title("Reviews by Overall Star Rating and Sentiments")
+plt.legend(title="Sentiment", loc='best', fontsize='small', fancybox=True)
+current_values = plt.gca().get_yticks()
+plt.show()
+
+############### what needs to be done to figure out accuracy ###########################
+
+### https://discuss.pytorch.org/t/f1-score-in-pytorch-for-evaluation-of-the-bert/144382
+
+def evaluate(model, val_dataloader):
+    """
+    After the completion of each training epoch, measure the model's performance
+    on our validation set.
+    """
+    # Put the model into the evaluation mode. The dropout layers are disabled during
+    # the test time.
+    model.eval()
+
+    # Tracking variables
+    val_accuracy = []
+    val_loss = []
+    f1_weighted = []
+
+    # For each batch in our validation set...
+    for batch in val_dataloader:
+        # Load batch to GPU
+        b_input_ids, b_attn_mask, b_labels = tuple(t.to(device) for t in batch)
+
+        # Compute logits
+        with torch.no_grad():
+            logits = model(b_input_ids, b_attn_mask)
+
+        # Compute loss
+        loss = loss_fn(logits, b_labels)
+        val_loss.append(loss.item())
+
+        # Get the predictions
+        preds = torch.argmax(logits, dim=1).flatten()
+
+        # Calculate the accuracy rate
+        accuracy = (preds == b_labels).cpu().numpy().mean() * 100
+        val_accuracy.append(accuracy)
+
+        # Calculate the f1 weighted score
+        f1_metric = F1Score('weighted') 
+        f1_weighted = f1_metric(preds, b_labels)
+
+    # Compute the average accuracy and loss over the validation set.
+    val_loss = np.mean(val_loss)
+    val_accuracy = np.mean(val_accuracy)
+    f1_weighted = np.mean(f1_weighted)
+
+    return val_loss, val_accuracy, f1_weighted 
+
 
 
 
