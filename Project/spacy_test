@@ -96,3 +96,40 @@ for i in range(len(df)):
     print(i)
 
 result.to_csv('result.csv')
+
+##################################################################################################################
+# Amanda Plots to run
+##################################################################################################################
+
+conditions = [
+    (result['polarity'] < 0),
+    (result['polarity'] > 0),
+    (result['polarity'] == 0)
+    ]
+
+values = ['Negative', 'Positive', 'Neutral']
+    
+    
+result['sentiment'] = np.select(conditions, values)
+
+# Plot number of reviews by subcategory and sentiment
+pivot = pd.pivot_table(result, values = 'asin', index = 'sub_category', columns = 'sentiment', aggfunc='count')
+pivot = pivot.reset_index()
+pivot.plot.bar(x = 'sub_category', rot = 50)
+plt.xlabel("Sub Category")
+plt.ylabel("Number of Reviews")
+plt.title("Reviews by Sub Category and Sentiments")
+plt.legend(title="Sentiment", loc='best', fontsize='small', fancybox=True)
+current_values = plt.gca().get_yticks()
+plt.show()
+
+# Plot number of reviews by Star rating and sentiment
+pivot = pd.pivot_table(result, values = 'asin', index = 'overall', columns = 'sentiment', aggfunc='count')
+pivot = pivot.reset_index()
+pivot.plot.bar(x = 'overall', rot = 50)
+plt.xlabel("Star Rating")
+plt.ylabel("Number of Reviews")
+plt.title("Reviews by Overall Star Rating and Sentiments")
+plt.legend(title="Sentiment", loc='best', fontsize='small', fancybox=True)
+current_values = plt.gca().get_yticks()
+plt.show()
