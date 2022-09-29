@@ -1,6 +1,5 @@
-
 ##########################################################################################
-# After 9/18/22, Trying out spacy text tokenization and analysis
+# After 9/18/22, Testing Textblob on Amanda Sample
 ##########################################################################################
 
 
@@ -26,22 +25,30 @@ import spacy
 from spacy.tokens import Span
 from spacy import displacy
 
-# Load cleaned file
-file = 'team8_initial_clean.parquet.gz'
-df = pd.read_parquet(file, engine = "pyarrow")
-#type(df)
-#len(df)
-#df.head(5)
+# Load cleaned file sample
+#file = 'team8_initial_clean.parquet.gz'
+#df = pd.read_parquet(file, engine = "pyarrow")
+
+file = 'BERTsample_data.csv'
+df = pd.read_csv(file)
+type(df)
+len(df)
+df.columns
+print(df.head(5))
 
 # Load spacy large
+spacy.require_gpu
 nlp = spacy.load("en_core_web_lg")
 
+
 # Sample from one of the original parquet files
-df_sample = df.sample(n=100)
-df_sample.dropna(inplace = True)
+#df_sample = df.sample(n=100000)
+#df_sample.dropna(inplace = True)
+
+
 
 # Apply spacy to the entire collection of reviews
-docs = list(nlp.pipe(df_sample.reviewText))
+docs = list(nlp.pipe(df.reviewText.astype(str)))
 
 # function to extract word properties
 def extract_tokens_plus_meta(doc:spacy.tokens.doc.Doc):
@@ -71,29 +78,21 @@ def tidy_tokens(docs):
         meta_df.append(meta)
     return meta_df
 
-# Run new functions for 10k sample docs and output a csv of text analysis
+# Run new functions for 200k sample docs and output a csv of text analysis
 df_output = tidy_tokens(docs)
 #df_output.to_csv('df_output.csv')
 
-##########################################################################################
-# After 9/18/22, Trying out textblob sentiment analysis
-##########################################################################################
-
-import textblob
 from textblob import TextBlob
-#from spacytextblob.spacytextblob import SpacyTextBlob
 
+result = df.copy()
+result.insert(17, "polarity", " ")
+result.insert(18, "subjectivity", " ")
 
-#example = TextBlob(df_sample['reviewText'].iloc[0])
-#example.sentiment
-
-result = []
-i=0
-
-for i in range(len(df_sample)):
+for i in range(len(df)):
     
-    example = TextBlob(df_sample['reviewText'].iloc[i])
-    result.append(example.sentiment.polarity)
-    
-df_sample['Sentiment'] = result
-df_sample.to_csv('df_output.csv')
+    example = TextBlob(df['reviewText'].astype(str).iloc[i])
+    result.iloc[[i],[17]] = [example.sentiment.polarity]
+    result.iloc[[i],[18]] = [example.sentiment.subjectivity]
+    print(i)
+
+result.to_csv('result.csv')
