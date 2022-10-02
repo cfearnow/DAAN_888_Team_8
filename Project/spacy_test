@@ -6,7 +6,7 @@
 # Import necessary packages
 import pandas as pd
 import numpy as np
-import pyarrow.parquet as pq
+#import pyarrow.parquet as pq
 import matplotlib.pyplot as plt
 from datetime import datetime
 import json
@@ -71,16 +71,20 @@ def tidy_tokens(docs):
     
     meta_df = []
     for ix, doc in enumerate(docs):
-        meta = extract_tokens_plus_meta(doc)
+        meta = extract_tokens_plus_meta(doc) 
         meta = pd.DataFrame(meta)
         meta.columns = cols[1:]
         meta = meta.assign(doc_id = ix).loc[:, cols]
         meta_df.append(meta)
-    return meta_df
+    return pd.concat(meta_df)
 
 # Run new functions for 200k sample docs and output a csv of text analysis
 df_output = tidy_tokens(docs)
-#df_output.to_csv('df_output.csv')
+df_output.to_csv('df_output.csv')
+
+
+# Running textblob
+
 
 from textblob import TextBlob
 
@@ -97,9 +101,25 @@ for i in range(len(df)):
 
 result.to_csv('result.csv')
 
+# Do the same thing for review summary
+
+result_sum = df.copy()
+result_sum.insert(17, "polarity", " ")
+result_sum.insert(18, "subjectivity", " ")
+
+for i in range(len(df)):
+    
+    example = TextBlob(df['summary'].astype(str).iloc[i])
+    result.iloc[[i],[17]] = [example.sentiment.polarity]
+    result.iloc[[i],[18]] = [example.sentiment.subjectivity]
+    print(i)
+
+result_sum.to_csv('result_sum.csv')
+
 ##################################################################################################################
-# Amanda Plots to run
+# Amanda Plots and word cloud to run
 ##################################################################################################################
+
 
 conditions = [
     (result['polarity'] < 0),
@@ -133,3 +153,91 @@ plt.title("Reviews by Overall Star Rating and Sentiments")
 plt.legend(title="Sentiment", loc='best', fontsize='small', fancybox=True)
 current_values = plt.gca().get_yticks()
 plt.show()
+
+# Word cloud
+# Importing wordcloud for plotting word clouds and textwrap for wrapping longer text
+from wordcloud import WordCloud
+from textwrap import wrap
+import matplotlib.pyplot as plt
+  
+#group our words by main product category
+#result = pd.read_csv("result.csv")
+#df_output = pd.read_csv("df_output.csv")
+
+
+grouped_sample = df_output.loc[(df_output['is_stop']==False) & 
+                               (df_output['is_digit']==False) & 
+                               (df_output['is_punct']==False)]
+
+grouped_sample = df_output[['token']]
+grouped_sample = grouped_sample.dropna()
+
+unique_string = (" ").join(grouped_sample.token.head(1000000))
+
+wordcloud = WordCloud(width = 1000, height = 500).generate(unique_string)
+plt.figure(figsize=(15,8))
+plt.imshow(wordcloud)
+plt.axis("off")
+
+
+### Duplicate above section for result summary (Clean up later)
+
+result_sum['sentiment'] = np.select(conditions, values)
+
+# Plot number of reviews by subcategory and sentiment
+pivot = pd.pivot_table(result_sum, values = 'asin', index = 'sub_category', columns = 'sentiment', aggfunc='count')
+pivot = pivot.reset_index()
+pivot.plot.bar(x = 'sub_category', rot = 50)
+plt.xlabel("Sub Category")
+plt.ylabel("Number of Reviews")
+plt.title("Summary Reviews by Sub Category and Sentiments")
+plt.legend(title="Sentiment", loc='best', fontsize='small', fancybox=True)
+current_values = plt.gca().get_yticks()
+plt.show()
+
+# Plot number of reviews by Star rating and sentiment
+pivot = pd.pivot_table(result_sum, values = 'asin', index = 'overall', columns = 'sentiment', aggfunc='count')
+pivot = pivot.reset_index()
+pivot.plot.bar(x = 'overall', rot = 50)
+plt.xlabel("Star Rating")
+plt.ylabel("Number of Reviews")
+plt.title("Summary Reviews by Overall Star Rating and Sentiments")
+plt.legend(title="Sentiment", loc='best', fontsize='small', fancybox=True)
+current_values = plt.gca().get_yticks()
+plt.show()
+
+
+# Do spacy tokenization for review summary field
+
+# Apply spacy to the entire collection of reviews
+docs = list(nlp.pipe(df.summary.astype(str)))
+
+# Run new functions for 200k sample docs and output a csv of text analysis
+df_output_sum = tidy_tokens(docs)
+df_output_sum.to_csv('df_output_sum.csv')
+
+
+# Word cloud
+# Importing wordcloud for plotting word clouds and textwrap for wrapping longer text
+from wordcloud import WordCloud
+from textwrap import wrap
+import matplotlib.pyplot as plt
+  
+#group our words by main product category
+#result = pd.read_csv("result.csv")
+#df_output = pd.read_csv("df_output.csv")
+
+
+grouped_sample_sum = df_output_sum.loc[(df_output_sum['is_stop']==False) & 
+                                       (df_output_sum['is_digit']==False) & 
+                                       (df_output_sum['is_punct']==False)]
+
+grouped_sample_sum = df_output_sum[['token']]
+grouped_sample_sum = grouped_sample_sum.dropna()
+
+unique_string = (" ").join(grouped_sample_sum.token)
+
+wordcloud = WordCloud(width = 1000, height = 500).generate(unique_string)
+plt.figure(figsize=(15,8))
+plt.imshow(wordcloud)
+plt.axis("off")
