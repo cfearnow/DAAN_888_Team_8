@@ -21,25 +21,6 @@ from ast import literal_eval
 from nltk import pos_tag
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from nltk.classify import NaiveBayesClassifier
-from nltk.corpus import subjectivity
-from nltk.sentiment import SentimentAnalyzer
-from nltk.sentiment.util import *
-from nltk.metrics.distance import jaccard_distance
-from nltk.util import ngrams
-import collections
-
-nltk.download('punkt')
-nltk.download('stopwords')
-nltk.download('wordnet')
-nltk.download('omw-1.4')
-nltk.download('averaged_perceptron_tagger')
-nltk.download('words')
-
-from nltk.corpus import words
-
-correct_words = words.words()
-
 #%%
 # Set directories
 
