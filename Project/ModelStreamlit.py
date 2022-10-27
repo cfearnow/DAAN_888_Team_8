@@ -135,7 +135,7 @@ with st.form(key="my_form"):
         streamlitlist.append({"reviewText": doc})
         inputdf = pd.DataFrame(streamlitlist, columns = ['reviewText'])
         if filedf is not None and doc != '':
-            streamlitdf = pd.concat([inputdf,filedf], axis = 0)
+            streamlitdf = pd.concat([inputdf,filedf], axis = 0,ignore_index=True)
         elif doc == '':
             streamlitdf = filedf
         else:
