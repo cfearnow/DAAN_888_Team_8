@@ -34,7 +34,6 @@ from spacy.tokens import Span
 from spacy import displacy
 import streamlit as st
 from streamlit_autorefresh import st_autorefresh
-import datetime
 from transformers import BertTokenizer, TFBertForSequenceClassification
 from transformers import InputExample, InputFeatures
 import tensorflow as tf
@@ -221,13 +220,13 @@ with st.form(key="my_form"):
         final_df = pd.DataFrame.from_dict(finalfinallist)
         st.dataframe(final_df)
         df = final_df[['Class 0','Rating 0']]
-        #df['Class 0'] = df['Class 0'].astype('string')
         df['Classification'] = np.where(df['Class 0'].isin(['expected','clean','quality','material','advertise','rating','size','workmanship']),'Product Quality', np.where(df['Class 0'].isin(['pleased','customer service','complain','contact','help','difficult','disclose','offensive']), 'Customer Service',np.where(df['Class 0'].isin(['price','invoice','bargain']), 'Pricing & Finance', 'Shipping')))
         st.dataframe(df)
         classification = pd.DataFrame(df['Classification'])
         final = pd.merge(pd.merge(pd.merge(streamlitdf, final_clean,left_index=True, right_index=True),final_df,left_index=True, right_index=True),classification,left_index=True, right_index=True)
         st.dataframe(final)
         csv_file = final.to_csv().encode('utf-8')
+        csvfilename = 'SentimentClassificationOutput_'+str(datetime.now().strftime("%Y%m%d_%H%M%S"))+'.csv'
      
 #Using a try except block to keep the download button hidden until the form has been ran
 try:
@@ -235,7 +234,7 @@ try:
         st.download_button(
         label="Download data as CSV",
         data=csv_file,
-        file_name='SentimentClassificationOutput_'+str(datetime.now().strftime("%Y%m%d_%H%M%S"))+'.csv',
+        file_name=csvfilename,
         mime='text/csv',
         )
 except:
