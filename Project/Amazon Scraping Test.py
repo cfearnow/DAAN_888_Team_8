@@ -137,3 +137,13 @@ def rev_img(soup):
 img_result = rev_img(soup)
 img_result
 
+def stars(soup):
+    
+    data_str = " "
+    star = []
+    for img in soup.findAll('i', datahook="review-star-rating"):
+        star.append(img.get('src'))
+    return star
+
+stars_result = stars(soup)
+print(stars_result)
