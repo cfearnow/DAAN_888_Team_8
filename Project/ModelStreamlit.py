@@ -41,6 +41,14 @@ from transformers import pipeline
 import torch
 from streamlit.components.v1 import html
 
+try:
+    if str.split(os.getcwd(),"\\")[2] == "brull":
+        os.chdir('C:\\Users\\brull\\OneDrive - The Pennsylvania State University\\Team-8\\')
+    else:
+        os.chdir('D:\\School_Files\\DAAN_888\\Team_8_Project\\')
+except:
+    os.chdir('D:\\School_Files\\DAAN_888\\Team_8_Project\\')
+
 torch.cuda.is_available()
 
 ##############################################################################
@@ -90,10 +98,32 @@ streamlitlist = []#pd.DataFrame(columns=['reviewText'])
 
 #Add application title
 st.markdown("<h1 style='text-align: center;'>Ad-Hoc Review Sentiment & Classification</h1>", unsafe_allow_html=True)
+# from PIL import Image
+# image = Image.open('Amazon Logo.png')
+
+# col1, col2, col3 = st.columns(3)
+
+# with col1:
+#     st.write("")
+
+# with col2:
+#     st.image(image, width = 150)
+
+# with col3:
+#     st.write("")
+
+st.markdown("<h2 style='text-align: center;'><img src='https://d3.harvard.edu/platform-digit/wp-content/uploads/sites/2/2018/03/rerre.png' width = '250' height = '100'></h2>", unsafe_allow_html=True)
+
 
 #Create a form (this will allow all variables created to be auto-passed when using form-submit button)
 with st.form(key="my_form"):
     #Create an input text section
+    brand = st.text_input("Associated Brand")
+    title = st.text_input("Item name")
+    reviewtime = str(datetime.now().strftime("%m/%d/%Y"))
+    overall = st.slider('Overall Star Rating',1,5,3)
+    asin = st.text_input('Amazon Unique Identifier')
+    
     doc = st.text_area(
                "Paste your text below (max 500 words)",
                height=510,
@@ -111,6 +141,7 @@ with st.form(key="my_form"):
     
     doc = doc[:MAX_WORDS]
     
+    
     uploaded_file = st.file_uploader("Optional: Choose a CSV file", type = 'csv')
     
     
@@ -123,7 +154,34 @@ with st.form(key="my_form"):
                 st.error('🚨Your uploaded file must include a \"reviewText\" column. Ignoring file input🚨')
                 filedf = None
             else:
-                filedf = pd.DataFrame(filedf.rename(columns={'reviewtext':'reviewText'})['reviewText'])
+                filedf = filedf.rename(columns={'reviewtext':'reviewText'})
+                if 'brand' not in filedf.columns:
+                    if brand != '':
+                        filedf['brand'] = brand
+                    else:
+                        filedf['brand'] = ''
+                if 'title' not in filedf.columns:
+                    if title != '':
+                        filedf['title'] = title
+                    else:
+                        filedf['title'] = ''
+                if 'reviewtime' not in filedf.columns:
+                    filedf['reviewTime'] = reviewtime
+                else:
+                    filedf = filedf.rename(columns={'reviewtime':'reviewTime'})
+                if 'overall' not in filedf.columns:
+                    if overall != '':
+                        filedf['overall'] = overall
+                    else:
+                        filedf['overall'] = ''
+                if 'asin' not in filedf.columns:
+                    if asin != '':
+                        filedf['asin'] = asin
+                    else:
+                        filedf['asin'] = ''
+                    filedf = filedf[['title','brand','asin','reviewTime','reviewText','overall']]
+                else:
+                    filedf = filedf[['title','brand','asin','reviewTime','reviewText','overall']]
         else:
             filedf = None
         if doc == '' and uploaded_file is None:
@@ -132,8 +190,8 @@ with st.form(key="my_form"):
         elif doc == '' and 'reviewText' not in filedf.columns:
             st.error('🚨Cannot review with no text submitted, exiting app🚨')
             st.stop()
-        streamlitlist.append({"reviewText": doc})
-        inputdf = pd.DataFrame(streamlitlist, columns = ['reviewText'])
+        streamlitlist.append({"title":title,"brand":brand,"asin":asin,"reviewTime":reviewtime,"reviewText": doc,"overall":overall})
+        inputdf = pd.DataFrame(streamlitlist, columns = ['title','brand','asin','reviewTime','reviewText','overall'])
         if filedf is not None and doc != '':
             streamlitdf = pd.concat([inputdf,filedf], axis = 0,ignore_index=True)
         elif doc == '':
@@ -141,6 +199,7 @@ with st.form(key="my_form"):
         else:
             streamlitdf = inputdf
         streamlitdf = streamlitdf.rename(columns={'reviewText':'originalEntry'})
+        streamlitdf['overall'] = np.where(streamlitdf['overall'] > 5, '',np.where(streamlitdf['overall'] < 1, '', streamlitdf['overall']))
         st.dataframe(streamlitdf)
         all_clean = str_clean(streamlitdf, 'originalEntry')
         final_clean = txt_clean(all_clean, 'originalEntry')
@@ -223,6 +282,7 @@ with st.form(key="my_form"):
         df['Classification'] = np.where(df['Class 0'].isin(['expected','clean','quality','material','advertise','rating','size','workmanship']),'Product Quality', np.where(df['Class 0'].isin(['pleased','customer service','complain','contact','help','difficult','disclose','offensive']), 'Customer Service',np.where(df['Class 0'].isin(['price','invoice','bargain']), 'Pricing & Finance', 'Shipping')))
         st.dataframe(df)
         classification = pd.DataFrame(df['Classification'])
+        final_clean = final_clean[['cleanedEntry']]
         final = pd.merge(pd.merge(pd.merge(streamlitdf, final_clean,left_index=True, right_index=True),final_df,left_index=True, right_index=True),classification,left_index=True, right_index=True)
         st.dataframe(final)
         csv_file = final.to_csv().encode('utf-8')
@@ -240,4 +300,14 @@ try:
 except:
     pass
         
+template = pd.DataFrame(columns=['title','brand','asin','reviewTime','reviewText','overall'])
+template = template.append({'title': 'OPTIONAL: This is the name of the item being reviewed', 'brand': 'OPTIONAL: This is the company that created the item being reviewed', 'asin': 'OPTIONAL: This is Amazons unique identifier value','reviewTime':'OPTIONAL: Time at which the review was submitted','reviewText':'REQUIRED: This is the main required item as it is the basis of the application','overall':'OPTIONAL: This is the star rating of the review with valid values of 1 through 5'}, ignore_index = True)
+template = template.append({'title': 'Nike Men''s College Sideline Therma Pullover Hoodie', 'brand': 'Nike', 'asin': 'B0BH88PDFK','reviewTime':'8/3/2022','reviewText':'Comfy and soft mens hoodie. Great fit and great design. It does snag easily but was great gift for my teenager.','overall':'5'}, ignore_index = True)
+template = template.to_csv(index = False).encode('utf-8')
 
+st.download_button(
+    label = "Download Review Template",
+    data = template,
+    file_name = 'ReviewInputTemplate.csv',
+    mime = 'text/csv',
+    )
