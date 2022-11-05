@@ -346,7 +346,7 @@ try:
             
             for x in final['emailList'].unique():
                 emailattachment = final.loc[final['emailList'] == x]
-                subject = "New Amazon Reviews For Review"
+                subject = "New Amazon Reviews For Review"+str(datetime.now().strftime("%Y%m%d_%H%M%S"))
                 body = "This is an email with attachment sent from DAAN888 Team 8"
                 sender_email = "Daan888team8@gmail.com"
                 receiver_email = final['emailList'][0]
