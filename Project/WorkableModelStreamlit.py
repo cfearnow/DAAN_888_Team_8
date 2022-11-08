@@ -28,6 +28,8 @@ from pynvml import *
 from tqdm import tqdm
 import seaborn as sns
 import xlsxwriter
+import nltk
+nltk.download('punkt')
 
 # Packages for NLP
 import spacy
@@ -144,15 +146,20 @@ with st.form(key="my_form"):
     doc = doc[:MAX_WORDS]
     
     
-    uploaded_file = st.file_uploader("Optional: Choose a CSV file", type = 'csv')
+    uploaded_file = st.file_uploader("Optional: Choose a CSV file with 200 rows or less", type = 'csv')
     
     #title,brand,main_cat,price,asin,verified,reviewTime,reviewText,summary,overall,sub_category,price_adj,original_text,original_summary,idx
     
     if st.form_submit_button(label="✨ Check the data!"):
         if uploaded_file is not None:
+            #check for number of rows in dataframe
+            
             # Can be used wherever a "file-like" object is accepted:
             filedf = pd.read_csv(uploaded_file)
             filedf.columns = filedf.columns.str.lower()
+            if len(filedf.index) > 200:
+                st.error('This file has more than 200 rows. Please limit to 200 rows or less')
+                st.stop()
             if 'reviewtext' not in filedf.columns:
                 st.error('🚨Your uploaded file must include a \"reviewText\" column. Ignoring file input🚨')
                 filedf = None
@@ -203,20 +210,35 @@ with st.form(key="my_form"):
             st.stop()
         streamlitlist.append({"title":title,"brand":brand,"asin":asin,"reviewTime":reviewtime,"reviewText": doc,"overall":overall,"sub_category":category})
         inputdf = pd.DataFrame(streamlitlist, columns = ['title','brand','asin','reviewTime','reviewText','overall','sub_category'])
+        
+        if filedf is not None:
+            tokens = filedf[['reviewText']]
+            tokens['tokenized'] = filedf.apply(lambda row: nltk.word_tokenize(row['reviewText']), axis=1) 
+            tokens['tokencount'] = (tokens.assign(count = tokens['tokenized'].str.len()).groupby('reviewText', as_index=False)['count'].sum())['count']
+            for index, row in tokens.iterrows():
+                if row['tokencount'] > 512:
+                    st.dataframe(filedf.iloc[[index]])
+                    st.error("Row "+str(index+1)+" has too many tokens, cannot process. Please update to proceed")
+                    st.stop()
+        
         if filedf is not None and doc != '':
             streamlitdf = pd.concat([inputdf,filedf], axis = 0,ignore_index=True)
         elif doc == '':
             streamlitdf = filedf
         else:
             streamlitdf = inputdf
-        streamlitdf = streamlitdf.rename(columns={'reviewText':'originalEntry'})
+        streamlitdf['originalEntry'] = streamlitdf['reviewText']
+        streamlitdf = streamlitdf.rename(columns = {'reviewTet':'original_text'})
         streamlitdf['overall'] = streamlitdf['overall'].astype('int')
         streamlitdf['overall'] = np.where(streamlitdf['overall'] > 5, '',np.where(streamlitdf['overall'] < 1, '', streamlitdf['overall']))
         st.dataframe(streamlitdf)
         all_clean = str_clean(streamlitdf, 'originalEntry')
         final_clean = txt_clean(all_clean, 'originalEntry')
-        final_clean['BERT_FullSentiment'] = final_clean['originalEntry'].apply(FunctionBERTSentiment)
-        final_clean['BERT_FullScore'] = final_clean['originalEntry'].apply(FunctionBERTSentimentScore)
+        
+        
+        
+        final_clean['BERT_FullSentiment'] = streamlitdf['originalEntry'].apply(FunctionBERTSentiment)
+        final_clean['BERT_FullScore'] = streamlitdf['originalEntry'].apply(FunctionBERTSentimentScore)
         final_clean = final_clean.rename(columns={'originalEntry':'cleanedEntry'})
         st.dataframe(final_clean)
         test_file = final_clean
@@ -310,7 +332,8 @@ with st.form(key="my_form"):
         final_clean = final_clean[['cleanedEntry']]
         final = pd.merge(pd.merge(streamlitdf, final_clean,left_index=True, right_index=True),final_df,left_index=True, right_index=True)
         st.dataframe(final)
-        final = final.rename(columns = {'cleanedEntry':'reviewText','originalEntry':'original_text'})
+        final = final.rename(columns = {'reviewText':'original_text'})
+        final = final.rename(columns = {'cleanedEntry':'reviewText'})
         csv_file = final.to_csv().encode('utf-8')
         csvfilename = 'SentimentClassificationOutput_'+str(datetime.now().strftime("%Y%m%d_%H%M%S"))+'.csv'
         
@@ -344,49 +367,56 @@ try:
             from email.mime.multipart import MIMEMultipart
             from email.mime.text import MIMEText
             
+            alreadysent = pd.DataFrame(columns = ['addresses'])
             for x in final['emailList'].unique():
-                emailattachment = final.loc[final['emailList'] == x]
-                subject = "New Amazon Reviews For Review"+str(datetime.now().strftime("%Y%m%d_%H%M%S"))
-                body = "This is an email with attachment sent from DAAN888 Team 8"
-                sender_email = "Daan888team8@gmail.com"
-                receiver_email = final['emailList'][0]
-                password = 'DAAN888team8!'
-                # Create a multipart message and set headers
-                message = MIMEMultipart()
-                message["From"] = sender_email
-                message["To"] = receiver_email
-                message["Subject"] = subject
-                message["Bcc"] = receiver_email  # Recommended for mass emails
-                
-                # Add body to email
-                message.attach(MIMEText(body, "plain"))
-                
-                def export_csv(df):
-                  with io.StringIO() as buffer:
-                    df.to_csv(buffer)
-                    return buffer.getvalue()
-                
-                filename = 'reviews.csv'
-                part = export_csv(emailattachment)
-                
-                # Encode file in ASCII characters to send by email    
-                encoders.encode_base64(part)
-                
-                # Add header as key/value pair to attachment part
-                part.add_header(
-                    "Content-Disposition",
-                    f"attachment; filename= {filename}",
-                )
-                
-                # Add attachment to message and convert message to string
-                message.attach(part)
-                text = message.as_string()
-                
-                # Log in to server using secure context and send email
-                context = ssl.create_default_context()
-                with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
-                    server.login(sender_email, password)
-                    server.sendmail(sender_email, receiver_email, text)
+                for y in str.split(x,';'):
+                    if ~alreadysent["addresses"].str.contains(str(y), na=False).any():
+                        df2 = {'addresses': y}
+                        alreadysent = alreadysent.append(df2, ignore_index = True)
+                        emailattachment = final.loc[final['emailList'].str.contains(str(y))]
+                        subject = "New Amazon Reviews For Review"+str(datetime.now().strftime("%Y%m%d_%H%M%S"))
+                        body = "This is an email with attachment sent from DAAN888 Team 8"
+                        sender_email = "Daan888team8@gmail.com"
+                        receiver_email = str(y)
+                        password = 'yxnjahrrvnlhcsva'#'DAAN888team8!'
+                        # Create a multipart message and set headers
+                        message = MIMEMultipart()
+                        message["From"] = sender_email
+                        message["To"] = receiver_email
+                        message["Subject"] = subject
+                        message["Bcc"] = receiver_email  # Recommended for mass emails
+                        
+                        # Add body to email
+                        message.attach(MIMEText(body, "plain"))
+                        
+                        def export_csv(df):
+                          with io.StringIO() as buffer:
+                            df.to_csv(buffer)
+                            return buffer.getvalue()
+                        
+                        filename = 'reviews.csv'
+                        part = export_csv(emailattachment)
+                        
+                        # Encode file in ASCII characters to send by email    
+                        x = MIMEBase('application', 'octet-stream')
+                        x.set_payload(part)
+                        encoders.encode_base64(x)
+                        
+                        # Add header as key/value pair to attachment part
+                        x.add_header(
+                            "Content-Disposition",
+                            f"attachment; filename= {filename}",
+                        )
+                        
+                        # Add attachment to message and convert message to string
+                        message.attach(x)
+                        text = message.as_string()
+                        
+                        # Log in to server using secure context and send email
+                        context = ssl.create_default_context()
+                        with smtplib.SMTP_SSL("smtp.gmail.com", 465, context=context) as server:
+                            server.login(sender_email, password)
+                            server.sendmail(sender_email, receiver_email, text)
             
             updated = pd.concat([full,final], axis=0, ignore_index=True)
             #Find a way to compress this if a record already exists based on that title, overall, and review text
