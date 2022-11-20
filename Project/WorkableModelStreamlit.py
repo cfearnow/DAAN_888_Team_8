@@ -356,7 +356,10 @@ try:
         
         final.to_csv('Streamlitfiles\\SentimentClassificationOutput_'+str(datetime.now().strftime("%Y%m%d_%H%M%S"))+'.csv')
         try:
-            full = pd.read_csv('combined_data.csv')
+            try:
+                full = pd.read_csv('combined_data.csv')
+            except:
+                st.error("🚨File in use! Make sure all instances are closed before running the application!🚨")
             full.drop('Unnamed: 0', axis=1, inplace=True)
             
             matchlogic = final[final['title'].isin(full['title']) & final['brand'].isin(full['brand']) & final['asin'].isin(full['asin']) & final['reviewTime'].isin(full['reviewTime']) & final['reviewText'].isin(full['reviewText']) & final['overall'].isin(full['overall']) & final['sub_category'].isin(full['sub_category'])]
