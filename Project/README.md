@@ -41,7 +41,7 @@
     </ol>
     <li>Re-create directory</li>
     <ol>
-        <li>in your user drive (C:\Users\<username>), create a folder called "Live Demo"</li>
+        <li>in your user drive (C:\Users\&lt;username&gt;), create a folder called "Live Demo"</li>
         <li>in "Live Demo" create a folder called "PowerBI" and a folder called "Streamlitfiles"</li>
     </ol>
 </ol>
@@ -88,7 +88,7 @@
     <li>If you are utilizing the local directory route:</li>
     <ol>
         <li>There will be an error on the screen, select the "Go to Error" button and "edit settings"</li>
-        <li>replace the file path with your local directory (C:\Users\<username>\Live Demo\PowerBI\combined_data.xlsx)</li>
+        <li>replace the file path with your local directory (C:\Users\&lt;username&gt;\Live Demo\PowerBI\combined_data.xlsx)</li>
         <li>in the top left, close and apply</li>
     </ol>
 </ol>
