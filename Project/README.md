@@ -72,16 +72,16 @@
         <li>In the power query editor pop-up on the left-hand nav, right-click "classified_file" and select "advanced editor"</li>
         <li>paste the following:</li>
         <ol>
-            <li>let
-                    Source = SharePoint.Files("https://pennstateoffice365.sharepoint.com/sites/DAAN888FA22-Team-8/", [ApiVersion = 15]),
-                    #"Filtered Rows" = Table.SelectRows(Source, each ([Name] = "combined_data.xlsx")),
-                    #"combined_data xlsx_https://pennstateoffice365 sharepoint com/sites/DAAN888FA22-Team-8/Shared Documents/Team-8/Live Demo/PowerBI/" = #"Filtered Rows"{[Name="combined_data.xlsx",#"Folder Path"="https://pennstateoffice365.sharepoint.com/sites/DAAN888FA22-Team-8/Shared Documents/Team-8/Live Demo/PowerBI/"]}[Content],
-                    #"Imported Excel Workbook" = Excel.Workbook(#"combined_data xlsx_https://pennstateoffice365 sharepoint com/sites/DAAN888FA22-Team-8/Shared Documents/Team-8/Live Demo/PowerBI/"),
-                    Sheet1_Sheet = #"Imported Excel Workbook"{[Item="Sheet1",Kind="Sheet"]}[Data],
-                    #"Promoted Headers" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true]),
-                    #"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Column1", Int64.Type}, {"idx", Int64.Type}, {"OriginalIndex", Int64.Type}, {"title", type text}, {"brand", type text}, {"main_cat", type text}, {"price", type text}, {"asin", type text}, {"verified", type logical}, {"reviewTime", type date}, {"reviewText", type text}, {"summary", type text}, {"overall", Int64.Type}, {"sub_category", type text}, {"price_adj", type number}, {"original_text", type text}, {"original_summary", type text}, {"sentiment", type text}, {"Class 0", type text}, {"Rating 0", type text}, {"Class 1", type text}, {"Rating 1", type text}, {"Class 2", type text}, {"Rating 2", type text}, {"Class 3", type text}, {"Rating 3", type text}, {"Class 4", type text}, {"Rating 4", type text}, {"Classification", type text}, {"Shipping", Int64.Type}, {"PricingFinance", Int64.Type}, {"CustomerService", Int64.Type}, {"ProductQuality", Int64.Type}, {"Validation", Int64.Type}, {"BERT_FullSentiment", type text}, {"BERT_FullScore", type number}, {"originalEntry", type text}, {"Classification1", type text}, {"Classification2", type text}, {"Classification3", type text}, {"Classification4", type text}, {"Classification5", type text}, {"emailList", type text}})
-                in
-                    #"Changed Type"</li>
+            <li>let<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;Source = SharePoint.Files("https://pennstateoffice365.sharepoint.com/sites/DAAN888FA22-Team-8/", [ApiVersion = 15]),<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;#"Filtered Rows" = Table.SelectRows(Source, each ([Name] = "combined_data.xlsx")),<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;#"combined_data xlsx_https://pennstateoffice365 sharepoint com/sites/DAAN888FA22-Team-8/Shared Documents/Team-8/Live Demo/PowerBI/" = #"Filtered Rows"{[Name="combined_data.xlsx",#"Folder Path"="https://pennstateoffice365.sharepoint.com/sites/DAAN888FA22-Team-8/Shared Documents/Team-8/Live Demo/PowerBI/"]}[Content],<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;#"Imported Excel Workbook" = Excel.Workbook(#"combined_data xlsx_https://pennstateoffice365 sharepoint com/sites/DAAN888FA22-Team-8/Shared Documents/Team-8/Live Demo/PowerBI/"),<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;Sheet1_Sheet = #"Imported Excel Workbook"{[Item="Sheet1",Kind="Sheet"]}[Data],<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;#"Promoted Headers" = Table.PromoteHeaders(Sheet1_Sheet, [PromoteAllScalars=true]),<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;#"Changed Type" = Table.TransformColumnTypes(#"Promoted Headers",{{"Column1", Int64.Type}, {"idx", Int64.Type}, {"OriginalIndex", Int64.Type}, {"title", type text}, {"brand", type text}, {"main_cat", type text}, {"price", type text}, {"asin", type text}, {"verified", type logical}, {"reviewTime", type date}, {"reviewText", type text}, {"summary", type text}, {"overall", Int64.Type}, {"sub_category", type text}, {"price_adj", type number}, {"original_text", type text}, {"original_summary", type text}, {"sentiment", type text}, {"Class 0", type text}, {"Rating 0", type text}, {"Class 1", type text}, {"Rating 1", type text}, {"Class 2", type text}, {"Rating 2", type text}, {"Class 3", type text}, {"Rating 3", type text}, {"Class 4", type text}, {"Rating 4", type text}, {"Classification", type text}, {"Shipping", Int64.Type}, {"PricingFinance", Int64.Type}, {"CustomerService", Int64.Type}, {"ProductQuality", Int64.Type}, {"Validation", Int64.Type}, {"BERT_FullSentiment", type text}, {"BERT_FullScore", type number}, {"originalEntry", type text}, {"Classification1", type text}, {"Classification2", type text}, {"Classification3", type text}, {"Classification4", type text}, {"Classification5", type text}, {"emailList", type text}})<br />
+                in<br />
+                    &nbsp;&nbsp;&nbsp;&nbsp;#"Changed Type"</li>
         </ol>
         <li>Click "done" then in the top left, close and apply</li>
     </ol>
