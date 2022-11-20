@@ -359,7 +359,7 @@ try:
             try:
                 full = pd.read_csv('combined_data.csv')
             except:
-                st.error("🚨File in use! Make sure all instances are closed before running the application!🚨")
+                st.error("🚨combined_data.csv file in use! Make sure all instances are closed before running the application!🚨")
                 st.stop()
             full.drop('Unnamed: 0', axis=1, inplace=True)
             
@@ -432,9 +432,17 @@ try:
             
             updated = pd.concat([full,final], axis=0, ignore_index=True)
             #Find a way to compress this if a record already exists based on that title, overall, and review text
-            updated.to_csv('combined_data.csv')
-            updated.to_excel('PowerBI\\combined_data.xlsx',engine = 'xlsxwriter')
-        
+            
+            try:
+                updated.to_csv('combined_data.csv')
+            except:
+                st.error("🚨combined_data.csv file in use! Make sure all instances are closed before running the application!🚨")
+                st.stop()
+            try:
+                updated.to_excel('PowerBI\\combined_data.xlsx',engine = 'xlsxwriter')
+            except:
+                st.error("🚨combined_data.xlsx file in use! Make sure all instances are closed before running the application!🚨")
+                st.stop()
 except:
     pass
         
