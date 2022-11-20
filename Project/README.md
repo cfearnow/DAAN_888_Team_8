@@ -35,14 +35,14 @@
     <li>Penn State One Drive</li>
     <ol>
         <li>First, download the One Drive desktop app</li>
-        <li>open the app and sign in to your Penn State Account</li>
-        <li>navigate to "WC DAAN 888 FA22 - Team-8/Documents"</li>
-        <li>right-click the "Team-8" folder and select "Add shortcut to OneDrive"</li>
+        <li>Open the app and sign in to your Penn State Account</li>
+        <li>Navigate to "WC DAAN 888 FA22 - Team-8/Documents"</li>
+        <li>Right-click the "Team-8" folder and select "Add shortcut to OneDrive"</li>
     </ol>
     <li>Re-create directory</li>
     <ol>
-        <li>in your user drive (C:\Users\&lt;username&gt;), create a folder called "Live Demo"</li>
-        <li>in "Live Demo" create a folder called "PowerBI" and a folder called "Streamlitfiles"</li>
+        <li>In your user drive (C:\Users\&lt;username&gt;), create a folder called "Live Demo"</li>
+        <li>In "Live Demo" create a folder called "PowerBI" and a folder called "Streamlitfiles"</li>
     </ol>
 </ol>
 
@@ -53,8 +53,27 @@
     <li>Navigate to the location of the WorkableModelStreamlit.py file</li>
     <li>Run the following command: streamlit run "python file location"</li>
     <li>A new tab should pop up on your preferred browser</li>
-    <li>IMPORTANT: When the little running man is in the top right corner, allow him to finish before proceeding</li>
-    <li>One other note, while the application is running or about to run, do not open Live Demo/clasified_file.csv or Live Demo/PowerBI/classifiedfile.xlsx</li>
+    <li><span style="color:red">IMPORTANT: When the little running man is in the top right corner, allow him to finish before proceeding</span></li>
+    <li><span style="color:red">One other note, while the application is running or about to run, do not open Live Demo/clasified_file.csv or Live Demo/PowerBI/classifiedfile.xlsx</span></li>
+    <li>To execute the application, there are 3 separate paths:</li>
+    <ol>
+        <li><b>Free-text entry</b></li>
+        <li>The only required fields are Overall Star Rating and the free-text</li>
+        <li>Once entered, select the "Check the data!" button</li>
+        <li>Once the running man has disappeared, the final record output can be found in the "Live Demo/Streamlitfiles" folder which is also appended to the classified_file files (csv and xlsx)</li>
+    </ol>
+    <ol>
+        <li><b>Bulk file load</b></li>
+        <li>The file must include a column called "reviewText" in order to run</li>
+        <li>A file template is available for download at the bottom of the application and includes some sample data</li>
+        <li>Do not fill out any of the free-text fields, just load the file (must be in csv format)</li>
+        <li>Once entered, select the "Check the data!" button</li>
+        <li>Once the running man has disappeared, the final record(s) output can be found in the "Live Demo/Streamlitfiles" folder which is also appended to the classified_file files (csv and xlsx)</li>
+    </ol>
+    <ol>
+        <li><b>Free-text and bulk file load</b></li>
+        <li>Follow the same steps as above, filling in both the free-text and uploading a bulk file</li>
+    </ol>
 </ol>
 
 <b>Check application output emails</b>
@@ -70,7 +89,7 @@
     <li>If you are utilizing the OneDrive route:</li>
     <ol>
         <li>In the power query editor pop-up on the left-hand nav, right-click "classified_file" and select "advanced editor"</li>
-        <li>paste the following:</li>
+        <li>Paste the following:</li>
         <ol>
             <li>let<br />
                     &nbsp;&nbsp;&nbsp;&nbsp;Source = SharePoint.Files("https://pennstateoffice365.sharepoint.com/sites/DAAN888FA22-Team-8/", [ApiVersion = 15]),<br />
@@ -88,7 +107,7 @@
     <li>If you are utilizing the local directory route:</li>
     <ol>
         <li>There will be an error on the screen, select the "Go to Error" button and "edit settings"</li>
-        <li>replace the file path with your local directory (C:\Users\&lt;username&gt;\Live Demo\PowerBI\combined_data.xlsx)</li>
-        <li>in the top left, close and apply</li>
+        <li>Replace the file path with your local directory (C:\Users\&lt;username&gt;\Live Demo\PowerBI\combined_data.xlsx)</li>
+        <li>In the top left, close and apply</li>
     </ol>
 </ol>
