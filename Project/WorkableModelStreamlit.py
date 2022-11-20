@@ -44,13 +44,16 @@ from transformers import pipeline
 import torch
 from streamlit.components.v1 import html
 
+#Change the directory 
 try:
-    if str.split(os.getcwd(),"\\")[2] == "brull":
-        os.chdir('C:\\Users\\brull\\OneDrive - The Pennsylvania State University\\Team-8\\Live Demo')
-    else:
-        os.chdir('D:\\School_Files\\DAAN_888\\Team_8_Project\\')
+    os.chdir('C:\\Users\\'+str.split(os.getcwd(),"\\")[2]+'\\OneDrive - The Pennsylvania State University\\Team-8\\Live Demo')
 except:
-    os.chdir('D:\\School_Files\\DAAN_888\\Team_8_Project\\')
+    print("OneDrive connection not detected, connecting locally")
+    try:
+        os.chdir('C:\\Users\\'+str.split(os.getcwd(),"\\")[2]+'\\Live Demo')
+    except:
+        st.error('🚨No viable folder path found, cannot start the application🚨')
+        st.stop()
 
 torch.cuda.is_available()
 
@@ -352,11 +355,16 @@ try:
         )
         
         final.to_csv('Streamlitfiles\\SentimentClassificationOutput_'+str(datetime.now().strftime("%Y%m%d_%H%M%S"))+'.csv')
-        full = pd.read_csv('combined_data.csv')
-        full.drop('Unnamed: 0', axis=1, inplace=True)
-        
-        matchlogic = final[final['title'].isin(full['title']) & final['brand'].isin(full['brand']) & final['asin'].isin(full['asin']) & final['reviewTime'].isin(full['reviewTime']) & final['reviewText'].isin(full['reviewText']) & final['overall'].isin(full['overall']) & final['sub_category'].isin(full['sub_category'])]
-        final.drop(matchlogic.index, inplace = True)
+        try:
+            full = pd.read_csv('combined_data.csv')
+            full.drop('Unnamed: 0', axis=1, inplace=True)
+            
+            matchlogic = final[final['title'].isin(full['title']) & final['brand'].isin(full['brand']) & final['asin'].isin(full['asin']) & final['reviewTime'].isin(full['reviewTime']) & final['reviewText'].isin(full['reviewText']) & final['overall'].isin(full['overall']) & final['sub_category'].isin(full['sub_category'])]
+            final.drop(matchlogic.index, inplace = True)
+            print(final.head(1))
+        except:
+            full = pd.DataFrame()
+            print("combined_data.csv not found")
         
         if final.empty:
             st.write('All records already exist in PBI file')
