@@ -53,8 +53,8 @@
     <li>Navigate to the location of the WorkableModelStreamlit.py file</li>
     <li>Run the following command: streamlit run "python file location"</li>
     <li>A new tab should pop up on your preferred browser</li>
-    <li><span style="color:red">IMPORTANT: When the little running man is in the top right corner, allow him to finish before proceeding</span></li>
-    <li><span style="color:red">One other note, while the application is running or about to run, do not open Live Demo/clasified_file.csv or Live Demo/PowerBI/classifiedfile.xlsx</span></li>
+    <li>:warning:IMPORTANT:warning:: When the little running man is in the top right corner, allow him to finish before proceeding</span></li>
+    <li>:warning:IMPORTANT:warning:: While the application is running or about to run, do not open Live Demo/clasified_file.csv or Live Demo/PowerBI/classifiedfile.xlsx</span></li>
     <li>To execute the application, there are 3 separate paths:</li>
     <ol>
         <li><b>Free-text entry</b></li>
