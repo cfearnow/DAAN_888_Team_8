@@ -148,16 +148,11 @@ with st.form(key="my_form"):
     
     doc = doc[:MAX_WORDS]
     
-    
     uploaded_file = st.file_uploader("Optional: Choose a CSV file with 200 rows or less", type = 'csv')
-    
-    #title,brand,main_cat,price,asin,verified,reviewTime,reviewText,summary,overall,sub_category,price_adj,original_text,original_summary,idx
     
     if st.form_submit_button(label="✨ Check the data!"):
         if uploaded_file is not None:
-            #check for number of rows in dataframe
-            
-            # Can be used wherever a "file-like" object is accepted:
+            #check for number of rows in dataframe and if required fields are present or not
             filedf = pd.read_csv(uploaded_file)
             filedf.columns = filedf.columns.str.lower()
             if len(filedf.index) > 200:
@@ -205,6 +200,7 @@ with st.form(key="my_form"):
                     filedf = filedf[['title','brand','asin','reviewTime','reviewText','overall','sub_category']]
         else:
             filedf = None
+        #cannot run if both reviewtext inputs are empty
         if doc == '' and uploaded_file is None:
             st.error('🚨Cannot review with no text submitted, exiting app🚨')
             st.stop()
@@ -214,6 +210,7 @@ with st.form(key="my_form"):
         streamlitlist.append({"title":title,"brand":brand,"asin":asin,"reviewTime":reviewtime,"reviewText": doc,"overall":overall,"sub_category":category})
         inputdf = pd.DataFrame(streamlitlist, columns = ['title','brand','asin','reviewTime','reviewText','overall','sub_category'])
         
+        #Check to see if all records are within token limit for BERT
         if filedf is not None:
             tokens = filedf[['reviewText']]
             tokens['tokenized'] = filedf.apply(lambda row: nltk.word_tokenize(row['reviewText']), axis=1) 
@@ -224,12 +221,15 @@ with st.form(key="my_form"):
                     st.error("Row "+str(index+1)+" has too many tokens, cannot process. Please update to proceed")
                     st.stop()
         
+        #combine the inputs if necessary
         if filedf is not None and doc != '':
             streamlitdf = pd.concat([inputdf,filedf], axis = 0,ignore_index=True)
         elif doc == '':
             streamlitdf = filedf
         else:
             streamlitdf = inputdf
+            
+        #Run some light data cleansing
         streamlitdf['originalEntry'] = streamlitdf['reviewText']
         streamlitdf = streamlitdf.rename(columns = {'reviewTet':'original_text'})
         streamlitdf['overall'] = streamlitdf['overall'].astype('int')
@@ -238,14 +238,15 @@ with st.form(key="my_form"):
         all_clean = str_clean(streamlitdf, 'originalEntry')
         final_clean = txt_clean(all_clean, 'originalEntry')
         
-        
-        
+        #Run BERT Sentiment and Score
         final_clean['BERT_FullSentiment'] = streamlitdf['originalEntry'].apply(FunctionBERTSentiment)
         final_clean['BERT_FullScore'] = streamlitdf['originalEntry'].apply(FunctionBERTSentimentScore)
         final_clean = final_clean.rename(columns={'originalEntry':'cleanedEntry'})
         st.dataframe(final_clean)
         test_file = final_clean
         test_file2 = test_file[test_file['cleanedEntry'].notnull()]
+        
+        #Begin zero-shot code re-creation
         classifier = pipeline("zero-shot-classification",
                       model="facebook/bart-large-mnli", 
                       device = 0)
@@ -316,6 +317,9 @@ with st.form(key="my_form"):
         final_df = pd.DataFrame.from_dict(finalfinallist)
         st.dataframe(final_df)
         df = final_df#[['Class 0','Rating 0']]
+        
+        #Based on zero-shot rating and class, assign an email to send to. 
+        #if rating is below .75 then do not assign an email classification (since it is a low level of confidence)
         df['Classification1'] = np.where(df['Rating 0'] >= .75, np.where(df['Class 0'].isin(['expected','clean','quality','material','advertise','rating','size','workmanship']),'DAAN888ProductQuality@gmail.com', np.where(df['Class 0'].isin(['pleased','customer service','complain','contact','help','difficult','disclose','offensive']), 'DAAN888CustomerService@gmail.com',np.where(df['Class 0'].isin(['price','invoice','bargain']), 'DAAN888PricingFinance@gmail.com', 'DAAN888Shipping@gmail.com'))),'')
         df['Classification2'] = np.where(df['Rating 1'] >= .75, np.where(df['Class 1'].isin(['expected','clean','quality','material','advertise','rating','size','workmanship']),'DAAN888ProductQuality@gmail.com', np.where(df['Class 1'].isin(['pleased','customer service','complain','contact','help','difficult','disclose','offensive']), 'DAAN888CustomerService@gmail.com',np.where(df['Class 1'].isin(['price','invoice','bargain']), 'DAAN888PricingFinance@gmail.com', 'DAAN888Shipping@gmail.com'))),'')
         df['Classification3'] = np.where(df['Rating 2'] >= .75, np.where(df['Class 2'].isin(['expected','clean','quality','material','advertise','rating','size','workmanship']),'DAAN888ProductQuality@gmail.com', np.where(df['Class 2'].isin(['pleased','customer service','complain','contact','help','difficult','disclose','offensive']), 'DAAN888CustomerService@gmail.com',np.where(df['Class 2'].isin(['price','invoice','bargain']), 'DAAN888PricingFinance@gmail.com', 'DAAN888Shipping@gmail.com'))),'')
@@ -325,6 +329,7 @@ with st.form(key="my_form"):
         #df['emailList'] = np.where(df['Classification1'] == df['Classification2'] or df['Classification1'] == df['Classification3'] or df['Classification1'] == df['Classification4'] or df['Classification1'] == df['Classification5'])
         st.dataframe(df)
         
+        #Create a concatenated list of all the emails and assign to a column.
         cols = ['Classification1','Classification2','Classification3','Classification4','Classification5']
         df['emailList'] = [[e for e in row if e==e and e != ""] for row in df[cols].values.tolist()]
         df['emailList'] = df['emailList'].apply(set)
@@ -332,6 +337,7 @@ with st.form(key="my_form"):
         df['emailList'] = df['emailList'].apply(sorted)
         df['emailList'] = df['emailList'].apply(lambda x: "; ".join(map(str, x)))
         
+        #Merge the dataframes created and create a utf-8 encoded CSV export for the run.
         final_clean = final_clean[['cleanedEntry']]
         final = pd.merge(pd.merge(streamlitdf, final_clean,left_index=True, right_index=True),final_df,left_index=True, right_index=True)
         st.dataframe(final)
@@ -346,6 +352,7 @@ with st.form(key="my_form"):
      
 #Using a try except block to keep the download button hidden until the form has been ran
 try:
+    #allow for a download button to download the CSV file to local storage
     if final is not None:
         st.download_button(
         label="Download data as CSV",
@@ -354,8 +361,10 @@ try:
         mime='text/csv',
         )
         
+        #Save the csv export to the data lake environment
         final.to_csv('Streamlitfiles\\SentimentClassificationOutput_'+str(datetime.now().strftime("%Y%m%d_%H%M%S"))+'.csv')
         try:
+            #Make sure the full file is available for use
             try:
                 full = pd.read_csv('combined_data.csv')
             except:
@@ -363,22 +372,28 @@ try:
                 st.stop()
             full.drop('Unnamed: 0', axis=1, inplace=True)
             
+            #Check to see if the records created already exist in the final dataset
             matchlogic = final[final['title'].isin(full['title']) & final['brand'].isin(full['brand']) & final['asin'].isin(full['asin']) & final['reviewTime'].isin(full['reviewTime']) & final['reviewText'].isin(full['reviewText']) & final['overall'].isin(full['overall']) & final['sub_category'].isin(full['sub_category'])]
             final.drop(matchlogic.index, inplace = True)
             print(final.head(1))
         except:
+            #If combined_data.csv does not already exist, start with an empty dataframe
             full = pd.DataFrame()
             print("combined_data.csv not found")
+        
         
         if final.empty:
             st.write('All records already exist in PBI file')
         else:
+            #Create email export for new records
             import email, smtplib, ssl
             from email import encoders
             from email.mime.base import MIMEBase
             from email.mime.multipart import MIMEMultipart
             from email.mime.text import MIMEText
             
+            #Create a variable to ensure only 1 email is sent to each address
+            #Unfortunately, server.sendmail would not correctly send a single email to all addresses, so we utilized a for loop instead
             alreadysent = pd.DataFrame(columns = ['addresses'])
             for x in final['emailList'].unique():
                 for y in str.split(x,';'):
@@ -390,6 +405,7 @@ try:
                         body = "This is an email with attachment sent from DAAN888 Team 8"
                         sender_email = "Daan888team8@gmail.com"
                         receiver_email = str(y)
+                        #Should look to store password and emails in a config file separately in the future
                         password = 'yxnjahrrvnlhcsva'#'DAAN888team8!'
                         # Create a multipart message and set headers
                         message = MIMEMultipart()
@@ -401,6 +417,7 @@ try:
                         # Add body to email
                         message.attach(MIMEText(body, "plain"))
                         
+                        #Define a function to create a csv export to attach to the email of only the new records
                         def export_csv(df):
                           with io.StringIO() as buffer:
                             df.to_csv(buffer)
@@ -430,28 +447,34 @@ try:
                             server.login(sender_email, password)
                             server.sendmail(sender_email, receiver_email, text)
             
+            #combine new records with original full file
             updated = pd.concat([full,final], axis=0, ignore_index=True)
             #Find a way to compress this if a record already exists based on that title, overall, and review text
             
+            #check again to ensure full file is not in use
             try:
                 updated.to_csv('combined_data.csv')
             except:
                 st.error("🚨combined_data.csv file in use! Make sure all instances are closed before running the application!🚨")
                 st.stop()
+                
+            #check to see if the full PBI import file is in use
             try:
                 updated.to_excel('PowerBI\\combined_data.xlsx',engine = 'xlsxwriter')
             except:
                 st.error("🚨combined_data.xlsx file in use! Make sure all instances are closed before running the application!🚨")
                 st.stop()
 except:
+    #above cannot be run until the the application is triggered, so must be enclosed in a try-except to avoid false errors
     pass
         
-
+#Create a download template to be used for anyone looking to run the application with new data.
 template = pd.DataFrame(columns=['title','brand','asin','reviewTime','reviewText','overall','sub_category'])
 template = template.append({'title': 'OPTIONAL: This is the name of the item being reviewed', 'brand': 'OPTIONAL: This is the company that created the item being reviewed', 'sub_category':'OPTIONAL: This field is used for capturing the overall category of the item', 'asin': 'OPTIONAL: This is Amazons unique identifier value','reviewTime':'OPTIONAL: Time at which the review was submitted','reviewText':'REQUIRED: This is the main required item as it is the basis of the application','overall':'OPTIONAL: This is the star rating of the review with valid values of 1 through 5'}, ignore_index = True)
 template = template.append({'title': 'Nike Men''s College Sideline Therma Pullover Hoodie', 'brand': 'Nike','sub_category':'Other', 'asin': 'B0BH88PDFK','reviewTime':'8/3/2022','reviewText':'Comfy and soft mens hoodie. Great fit and great design. It does snag easily but was great gift for my teenager.','overall':'5'}, ignore_index = True)
 template = template.to_csv(index = False).encode('utf-8')
 
+#Create a download button for the review template
 st.download_button(
     label = "Download Review Template",
     data = template,
