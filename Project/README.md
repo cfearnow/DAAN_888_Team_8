@@ -2,32 +2,33 @@
 
 <b>The following libraries must be installed in order for the application to run:</b>
 <ul>
-    <li>pandas</li>
-    <li>numpy</li>
-    <li>pyarrow</li>
-    <li>matplotlib</li>
-    <li>datetime</li>
-    <li>json</li>
-    <li>gzip</li>
-    <li>os</li>
-    <li>codecs</li>
-    <li>csv</li>
-    <li>io</li>
-    <li>re</li>
-    <li>string</li>
-    <li>glob</li>
-    <li>pynvml</li>
-    <li>tqdm</li>
-    <li>seaborn</li>
-    <li>xlsxwriter</li>
-    <li>nltk</li>
-    <li>spacy</li>
-    <li>streamlit</li>
-    <li>streamlit_autorefresh</li>
-    <li>huggingface</li>
-    <li>tensorflow</li>
-    <li>torch</li>
-    <li>email</li>
+    <li>Python 3.6.13</li>
+	<li>pandas 1.1.5</li>
+	<li>numpy 1.19.2</li>
+	<li>pyarrow 4.0.</li>
+	<li>matplotlib 3.3.4</li>
+	<li>datetime standard python package</li>
+	<li>json 2.0.9</li>
+	<li>gzip standard python package</li>
+	<li>os standard python package</li>
+	<li>codecs standard python package</li>
+	<li>csv 1.0</li>
+	<li>io standard python package</li>
+	<li>re 2.2.1</li>
+	<li>string standard python package</li>
+	<li>glob standard python package</li>
+	<li>pynvml 11.4.1</li>
+	<li>tqdm 4.64.1</li>
+	<li>seaborn 0.11.2</li>
+	<li>xlsxwriter 3.0.3</li>
+	<li>nltk 3.4.5</li>
+	<li>spacy 2.3.5</li>
+	<li>streamlit 1.10.0</li>
+	<li>streamlit_autorefresh 0.0.1</li>
+	<li>huggingface (conda install -c huggingface transformers) 4.11.3</li>
+	<li>tensorflow 2.4.0</li>
+	<li>torch 1.7.0</li>
+	<li>email standard python package</li>
 </ul>
 
 <b>Add Penn State One Drive folder OR re-create the directory</b>
